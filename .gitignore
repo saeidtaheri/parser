@@ -1,0 +1,5 @@
+vendor
+.idea
+volumes
+.env
+.phpunit.result.cache
