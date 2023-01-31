@@ -17,6 +17,10 @@ class Kernel
     private string $connection;
     private readonly string $driver;
     private Container $container;
+    private string $command;
+    private readonly string $driver;
+    private Container $container;
+    private mixed $driverDb;
 
     /**
      * @param array $config
@@ -28,6 +32,25 @@ class Kernel
         $this->connection = $connection;
 
         $this->container = new Container();
+    }
+
+    /**
+     * @return void
+     */
+    public function bootstrap(): void
+    {
+        $this->isValidCommand();
+
+        if ($this->command === 'setup') {
+            if (!in_array($this->connection, ['sqlite', 'mysql'])) {
+                echo 'Setup does not required!' . PHP_EOL;
+                exit(2);
+            }
+
+            $this->setup();
+        } else {
+            $this->execute();
+        }
     }
 
     /**
@@ -52,9 +75,11 @@ class Kernel
         }
     }
 
+
     /**
      * @return void
      */
+
     private function bootServices(): void
     {
         $driverConfig = include('./config/database.php');
