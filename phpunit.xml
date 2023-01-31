@@ -15,6 +15,5 @@
     </coverage>
     <php>
         <env name="CONNECTION" value="sqlite"/>
-        <env name="SQLITE_DATABASE" value=":memory:"/>
     </php>
 </phpunit>
