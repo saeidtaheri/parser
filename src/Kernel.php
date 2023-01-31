@@ -12,8 +12,11 @@ use Exception;
 
 class Kernel
 {
+    const SETUPABLE_CONNECTIONS = ['sqlite', 'mysql'];
     private array $config;
     private string $connection;
+    private readonly string $driver;
+    private Container $container;
     private string $command;
     private readonly string $driver;
     private Container $container;
@@ -22,13 +25,11 @@ class Kernel
     /**
      * @param array $config
      * @param string $connection
-     * @param array $arg
      */
-    public function __construct(array $config, string $connection, array $arg)
+    public function __construct(array $config, string $connection)
     {
         $this->config = $config;
         $this->connection = $connection;
-        $this->command = $arg[1] ?? 'run';
 
         $this->container = new Container();
     }
@@ -55,22 +56,7 @@ class Kernel
     /**
      * @return void
      */
-    private function setup(): void
-    {
-        try {
-            $driverInstaller = InstallerFactory::make($this->connection);
-            call_user_func($driverInstaller . '::setup', $this->config['connections'][$this->connection]);
-            echo 'Driver has been bootstrapped' . PHP_EOL;
-        } catch (Exception $e) {
-            echo 'Driver bootstrapping failed due to ' . $e->getMessage() . PHP_EOL;
-            exit(3);
-        }
-    }
-
-    /**
-     * @return void
-     */
-    private function execute(): void
+    public function bootstrap(): void
     {
         $this->driver = "App\Drivers\\" . ucfirst($this->connection);
         if (!class_exists($this->driver)) {
@@ -89,22 +75,27 @@ class Kernel
         }
     }
 
-    private function bootServices(): void
-    {
-        $driverConfig = include('./config/database.php');
-
-        $this->container->set(DbDriverInterface::class, new $this->driver($driverConfig['connections'][$this->connection]));
-        $this->container->set(DataProvider::class, new DataProvider(new Csv(), new Url()));
-    }
 
     /**
      * @return void
      */
-    private function isValidCommand(): void
+
+    private function bootServices(): void
     {
-        if (!in_array($this->command, ['run', 'setup'])) {
-            echo 'Command is invalid!' . PHP_EOL;
-            exit(1);
+        $driverConfig = include('./config/database.php');
+        if (in_array($this->connection, self::SETUPABLE_CONNECTIONS)) {
+            try {
+                $driverInstaller = InstallerFactory::make($this->connection);
+                $driverDb = new $driverInstaller($this->config['connections'][$this->connection]);
+                $db = $driverDb->setup($driverConfig['connections'][$this->connection]);
+            } catch (Exception $e) {
+                echo 'Driver bootstrapping failed due to ' . $e->getMessage() . PHP_EOL;
+                exit(3);
+            }
+            $this->container->set(DbDriverInterface::class, new $this->driver($db));
+        } else {
+            $this->container->set(DbDriverInterface::class, new $this->driver($driverConfig['connections'][$this->connection]));
         }
+        $this->container->set(DataProvider::class, new DataProvider(new Csv(), new Url()));
     }
 }

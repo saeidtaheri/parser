@@ -18,17 +18,8 @@ class ParserService
      */
     public function run(): mixed
     {
-        return $this->database->save($this->getData());
-    }
+        $data = $this->dataProvider->prepare();
 
-    /**
-     * @return array
-     */
-    private function getData(): array
-    {
-        return $this->dataProvider
-            ->fromCsv()
-            ->fromUrl()
-            ->prepare();
+        return $this->database->save($data);
     }
 }
