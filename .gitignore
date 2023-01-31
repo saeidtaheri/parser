@@ -1,5 +1,6 @@
 vendor
 .idea
 volumes
+storage/*
 .env
 .phpunit.result.cache

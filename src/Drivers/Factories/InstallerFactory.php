@@ -6,6 +6,10 @@ use Exception;
 
 class InstallerFactory
 {
+    /**
+     * @param string $connection
+     * @return string
+     */
     public static function make(string $connection): string
     {
         return "App\Drivers\\" .

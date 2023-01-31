@@ -2,18 +2,17 @@
 
 namespace App\Drivers;
 
+use App\Contracts\DriverInstallerInterface;
 use SQLiteException;
-use Exception;
 use SQLite3;
 
-class SqliteInstaller
+class SqliteInstaller implements DriverInstallerInterface
 {
     /**
-     * @param $config
+     * @param array $config
      * @return SQLite3
-     * @throws Exception
      */
-    public static function setup($config): SQLite3
+    public function setup(array $config): SQLite3
     {
         $dbFile = $config['database'];
 
@@ -28,10 +27,9 @@ class SqliteInstaller
                 postcode TEXT,
                 birthdate DATE)'
             );
-
             return $db;
         } catch (SQLiteException $e) {
-            throw new Exception($e->getMessage());
+            die($e->getMessage());
         }
     }
 }
