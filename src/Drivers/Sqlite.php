@@ -3,8 +3,8 @@
 namespace App\Drivers;
 
 use App\Contracts\DbDriverInterface;
-use PHPUnit\Util\Exception;
 use SQLite3;
+use SQLiteException;
 
 class Sqlite implements DbDriverInterface
 {
@@ -14,40 +14,12 @@ class Sqlite implements DbDriverInterface
     private SQLite3 $db;
 
     /**
-     * @var array|mixed
+     * @param $db
      */
-    private array $dbConf;
-
-    public function __construct($config)
+    public function __construct($db)
     {
-        if (empty($config))
-            throw new Exception('driver config is invalid!');
-
-        $this->db = SqliteInstaller::setup($config);
+        $this->db = $db;
     }
-
-//    /**
-//     * @return void
-//     */
-//    private function setup(): void
-//    {
-//        $dbFile = $this->dbConf['connections'][$_ENV['CONNECTION']]['database'];
-//
-//        try {
-//            $this->db = new SQLite3($dbFile);
-//            $this->db->exec('CREATE TABLE IF NOT EXISTS users (
-//                id INTEGER PRIMARY KEY,
-//                gender TEXT NOT NULL,
-//                name TEXT NOT NULL,
-//                email TEXT NOT NULL,
-//                country TEXT,
-//                postcode TEXT,
-//                birthdate DATE)'
-//            );
-//        } catch (\SQLiteException $e) {
-//            throw new \SQLiteException($e->getMessage());
-//        }
-//    }
 
     /**
      * @param array $data
@@ -64,21 +36,15 @@ class Sqlite implements DbDriverInterface
                          '" . $user['id'] . "' ,'" . $user['gender'] . "','" . $user['name'] . "','" . $user['email'] . "',
                          '" . $user['country'] . "','" . $user['postcode'] . "','" . $user['birthdate'] . "')
                     ");
-                } catch (\SQLiteException $e) {
+                } catch (SQLiteException $e) {
                     die($e->getMessage());
                 }
             }
         }
 
+        $this->closeConnection();
+
         return 'Users imported!';
-
-//        $this->closeConnection();
-
-//        return $res;
-//        if ($res)
-//            return  "Users imported!";
-//
-//        return 'something wrong, try again later!';
     }
 
     /**
