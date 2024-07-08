@@ -1,58 +1,17 @@
-FROM php:8-fpm
+FROM php:8.3-fpm
 
-RUN apt-get update
-
-RUN apt-get install -y \
-    vim \
-    git \
+RUN apt-get update && apt-get install -y \
     zip \
-    nano \
-    curl \
-    wget \
-    tree \
-    tmux \
-    screen \
-    sudo \
     unzip \
-    libicu-dev \
-    libbz2-dev \
-    libpng-dev \
-    libjpeg-dev \
-    libmcrypt-dev \
-    libreadline-dev \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev\
-    libxslt-dev \
-    freetds-dev \
-    libonig-dev\
-    libcurl4-openssl-dev \
-    libssl-dev \
+    git \
+    curl \
     libzip-dev \
-    zip \
-    g++
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
-RUN docker-php-ext-install \
-    gd \
-    bz2 \
-    intl \
-    phar \
-    iconv \
-    ctype \
-    bcmath \
-    mysqli \
-    pdo \
-    pdo_mysql \
-    sockets \
-    calendar \
-    zip
+RUN docker-php-ext-install pdo pdo_mysql zip mysqli
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-#RUN acurl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
-#RUN sudo apt-get install -y \
-#    nodejs \
-#    npm \
-#    build-essential
 
 ARG uid
 RUN useradd -G www-data,root -u $uid -d /home/parser parser
