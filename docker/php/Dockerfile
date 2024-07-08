@@ -1,5 +1,7 @@
 FROM php:8.3-fpm
 
+WORKDIR /srv/www
+
 RUN apt-get update && apt-get install -y \
     zip \
     unzip \
@@ -17,6 +19,3 @@ ARG uid
 RUN useradd -G www-data,root -u $uid -d /home/parser parser
 RUN mkdir -p /home/parser/.composer && \
     chown -R parser:parser /home/parser
-
-WORKDIR /srv/www
-
