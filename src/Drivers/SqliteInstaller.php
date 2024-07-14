@@ -3,7 +3,8 @@
 namespace App\Drivers;
 
 use App\Contracts\DriverInstallerInterface;
-use SQLiteException;
+
+use Exception;
 use SQLite3;
 
 class SqliteInstaller implements DriverInstallerInterface
@@ -11,6 +12,7 @@ class SqliteInstaller implements DriverInstallerInterface
     /**
      * @param array $config
      * @return SQLite3
+     * @throws Exception
      */
     public function setup(array $config): SQLite3
     {
@@ -28,8 +30,8 @@ class SqliteInstaller implements DriverInstallerInterface
                 birthdate DATE)'
             );
             return $db;
-        } catch (SQLiteException $e) {
-            die($e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception('Failed to initialize database: ' . $e->getMessage());
         }
     }
 }

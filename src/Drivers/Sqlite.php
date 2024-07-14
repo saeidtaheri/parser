@@ -3,42 +3,44 @@
 namespace App\Drivers;
 
 use App\Contracts\DbDriverInterface;
+use Exception;
 use SQLite3;
-use SQLiteException;
 
-class Sqlite implements DbDriverInterface
+readonly class Sqlite implements DbDriverInterface
 {
     /**
-     * @var SQLite3
+     * @param SQLite3 $db
      */
-    private SQLite3 $db;
-
-    /**
-     * @param $db
-     */
-    public function __construct($db)
+    public function __construct(private SQLite3 $db)
     {
-        $this->db = $db;
     }
 
     /**
      * @param array $data
      * @return string
+     * @throws Exception
      */
     public function save(array $data): string
     {
         foreach ($data as $user) {
-            $result = $this->db->query('SELECT count(*) FROM users WHERE id = ' . $user['id']);
-            $num = $result->fetchArray(SQLITE3_NUM);
-            if ($num[0] === 0) {
-                try {
-                    $this->db->exec("INSERT INTO users VALUES(
-                         '" . $user['id'] . "' ,'" . $user['gender'] . "','" . $user['name'] . "','" . $user['email'] . "',
-                         '" . $user['country'] . "','" . $user['postcode'] . "','" . $user['birthdate'] . "')
-                    ");
-                } catch (SQLiteException $e) {
-                    die($e->getMessage());
-                }
+            $insertQuery = 'INSERT or REPLACE INTO users (
+               id, gender, name, email, country, postcode, birthdate
+               ) VALUES (:id, :gender, :name, :email, :country, :postcode, :birthdate)';
+
+            $insertStmt = $this->db->prepare($insertQuery);
+            $insertStmt->bindValue(':id', $user['id']);
+            $insertStmt->bindValue(':gender', $user['gender']);
+            $insertStmt->bindValue(':name', $user['name']);
+            $insertStmt->bindValue(':email', $user['email']);
+            $insertStmt->bindValue(':country', $user['country']);
+            $insertStmt->bindValue(':postcode', $user['postcode']);
+            $insertStmt->bindValue(':birthdate', $user['birthdate']);
+
+            try {
+                $insertStmt->execute();
+            } catch (Exception $e) {
+                error_log('SQLiteException: ' . $e->getMessage());
+                throw new Exception('Failed to insert user data: ' . $e->getMessage());
             }
         }
 
