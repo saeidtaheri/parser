@@ -9,7 +9,7 @@ class FileDriverTest extends TestCase
 {
     public function test_throw_exception_if_provide_a_wrong_config()
     {
-        $this->expectExceptionMessage('Driver config is invalid!');
+        $this->expectExceptionMessage('Config file should be provided!');
 
         $config = [];
 
@@ -20,7 +20,7 @@ class FileDriverTest extends TestCase
 
     public function test_throw_exception_if_file_directory_is_not_valid()
     {
-        $this->expectExceptionMessage('File directory is invalid!');
+        $this->expectExceptionMessage('File configs is invalid!');
 
         $config = [
             'file_name' => 'users_test.txt',
