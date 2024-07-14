@@ -5,23 +5,17 @@ namespace App\Drivers;
 use App\Contracts\DbDriverInterface;
 use Exception;
 
-class File implements DbDriverInterface
+readonly class File implements DbDriverInterface
 {
-    /**
-     * @var string|mixed
-     */
-    private array $dbConfig;
-
     /**
      * @param array $config
      * @throws Exception
      */
-    public function __construct(array $config)
+    public function __construct(private array $config)
     {
-        if (empty($config))
-            throw new Exception('Driver config is invalid!');
-
-        $this->dbConfig = $config;
+        if (empty($config)) {
+            throw new Exception('Config file should be provided!');
+        }
     }
 
     /**
@@ -31,10 +25,11 @@ class File implements DbDriverInterface
      */
     public function save(array $data): string
     {
-        $destDir = $this->dbConfig['dest_path'];
-        $fileName = $this->dbConfig['file_name'];
-        if (!is_dir($destDir)) {
-            throw new Exception('File directory is invalid!');
+        $destDir = $this->config['dest_path'];
+        $fileName = $this->config['file_name'];
+
+        if (!is_dir($destDir) || is_null($fileName)) {
+            throw new Exception('File configs is invalid!');
         }
 
         file_put_contents($destDir . $fileName, var_export($data, true));

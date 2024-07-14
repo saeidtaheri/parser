@@ -5,11 +5,11 @@ namespace App\Services;
 use App\Contracts\DbDriverInterface;
 use App\Providers\DataProvider;
 
-class ParserService
+readonly class ParserService
 {
     public function __construct(
-        private readonly DataProvider $dataProvider,
-        private readonly DbDriverInterface $database
+        private DataProvider      $dataProvider,
+        private DbDriverInterface $database
     )
     {}
 

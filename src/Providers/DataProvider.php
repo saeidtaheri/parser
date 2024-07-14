@@ -15,11 +15,8 @@ class DataProvider
 
     public function prepare(): array
     {
-        $data = [];
-        foreach ($this->providers as $provider) {
-            $data[] = $provider->provide();
-        }
+        $data = array_map(fn($provider) => $provider->provide(), $this->providers);
 
-        return call_user_func_array('array_merge', $data);
+        return array_merge(...$data);
     }
 }
