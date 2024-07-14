@@ -2,17 +2,24 @@
 
 namespace App\Drivers\Factories;
 
+use App\Contracts\DriverInstallerInterface;
+use App\Drivers\MysqlInstaller;
+use App\Drivers\SqliteInstaller;
 use Exception;
 
 class InstallerFactory
 {
     /**
      * @param string $connection
-     * @return string
+     * @return DriverInstallerInterface
+     * @throws Exception
      */
-    public static function make(string $connection): string
+    public static function make(string $connection): DriverInstallerInterface
     {
-        return "App\Drivers\\" .
-            ucfirst($connection ?? fn() => throw new Exception('connection is invalid')) . "Installer";
+        return match ($connection) {
+            'mysql' => new MysqlInstaller(),
+            'sqlite' => new SqliteInstaller(),
+            default => throw new Exception('Invalid connection: ' . $connection)
+        };
     }
 }

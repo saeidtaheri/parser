@@ -1,6 +1,7 @@
 <?php
 
 use App\Kernel;
+use DI\Container;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -9,9 +10,9 @@ if (php_sapi_name() !== 'cli') {
 }
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->safeLoad();
+$dotenv->load();
 
 $connection = $_ENV['CONNECTION'];
-$config = include './config/database.php';
+$container = new Container();
 
-(new Kernel($config, $connection))->bootstrap();
+(new Kernel($connection, $container))->bootstrap();

@@ -4,75 +4,84 @@ namespace App;
 
 use App\Contracts\DbDriverInterface;
 use App\Drivers\Factories\InstallerFactory;
+use App\Drivers\File;
+use App\Drivers\Sqlite;
 use App\Providers\Csv;
 use App\Providers\DataProvider;
 use App\Providers\Url;
+use App\Services\ParserService;
 use DI\Container;
 use Exception;
 
 class Kernel
 {
-    const SETUPABLE_CONNECTIONS = ['sqlite', 'mysql'];
-    private array $config;
-    private string $connection;
     private readonly string $driver;
-    private Container $container;
 
     /**
-     * @param array $config
      * @param string $connection
+     * @param Container $container
      */
-    public function __construct(array $config, string $connection)
+    public function __construct(
+        private readonly string    $connection,
+        private readonly Container $container
+    )
     {
-        $this->config = $config;
-        $this->connection = $connection;
-
-        $this->container = new Container();
     }
 
     /**
      * @return void
+     * @throws Exception
      */
     public function bootstrap(): void
     {
-        $this->driver = "App\Drivers\\" . ucfirst($this->connection);
-        if (!class_exists($this->driver)) {
-            echo 'Connection driver is invalid!' . PHP_EOL;
-            exit(4);
-        }
-
+        $this->setDriver();
         $this->bootServices();
 
         try {
-            $parser = $this->container->get('App\Services\ParserService');
+            $parser = $this->container->get(ParserService::class);
             echo $parser->run() . PHP_EOL;
         } catch (Exception $e) {
-            echo $e->getMessage();
-            exit(5);
+            throw new Exception($e->getMessage());
         }
     }
 
-
     /**
      * @return void
+     * @throws Exception
      */
-
     private function bootServices(): void
     {
-        $driverConfig = include('./config/database.php');
-        if (in_array($this->connection, self::SETUPABLE_CONNECTIONS)) {
+        $dbConnectionConfig = config($this->connection);
+        if (is_configurable($this->connection)) {
             try {
-                $driverInstaller = InstallerFactory::make($this->connection);
-                $driverDb = new $driverInstaller($this->config['connections'][$this->connection]);
-                $db = $driverDb->setup($driverConfig['connections'][$this->connection]);
+                $dbDriver = InstallerFactory::make($this->connection);
+                $db = $dbDriver->setup($dbConnectionConfig);
             } catch (Exception $e) {
-                echo 'Driver bootstrapping failed due to ' . $e->getMessage() . PHP_EOL;
-                exit(3);
+                throw new Exception(
+                    'Driver bootstrapping failed due to ' . $e->getMessage()
+                );
             }
             $this->container->set(DbDriverInterface::class, new $this->driver($db));
         } else {
-            $this->container->set(DbDriverInterface::class, new $this->driver($driverConfig['connections'][$this->connection]));
+            $this->container->set(
+                DbDriverInterface::class,
+                new $this->driver($dbConnectionConfig)
+            );
         }
-        $this->container->set(DataProvider::class, new DataProvider(new Csv(), new Url()));
+        $this->container->set(
+            DataProvider::class,
+            new DataProvider(new Csv(), new Url())
+        );
+    }
+
+    private function setDriver(): void
+    {
+        $this->driver = match ($this->connection) {
+            'file' => File::class,
+            'sqlite' => Sqlite::class,
+            default => throw new Exception(
+                "Connection driver `$this->connection` is invalid!"
+            )
+        };
     }
 }
