@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\DataProviderInterface;
+use Generator;
 
 class Csv implements DataProviderInterface
 {
@@ -11,14 +12,25 @@ class Csv implements DataProviderInterface
      */
     public function provide(): array
     {
-        $csv_provider = array_map('str_getcsv', file(getcwd() . '/data/users.csv'));
-        array_walk($csv_provider, function (&$item) use ($csv_provider) {
-            $item = array_combine($csv_provider[0], $item);
-        });
+        $csvPath = getcwd() . '/data/users.csv';
+        $arrayData = $this->readFromFile($csvPath);
 
-        // Remove header column
-        array_shift($csv_provider);
+        return iterator_to_array($arrayData);
+    }
 
-        return $csv_provider;
+    /**
+     * @param $filePath
+     * @return Generator
+     */
+    private function readFromFile($filePath): Generator
+    {
+        $file = fopen($filePath, 'r');
+        $header = fgetcsv($file);
+
+        while ($row = fgetcsv($file)) {
+            yield array_combine($header, $row);
+        }
+
+        fclose($file);
     }
 }

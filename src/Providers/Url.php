@@ -14,21 +14,22 @@ class Url implements DataProviderInterface
      */
     public function provide(): array
     {
-        $web_provider = json_decode(file_get_contents('./data/network.json'))->results;
+        $webProvider = json_decode(file_get_contents('./data/network.json'))->results;
 
         $users = [];
-        $i = 100000000000;
-        foreach ($web_provider as $item) {
-            $i++;
+        $id = 100000000000;
+        foreach ($webProvider as $item) {
+            $id++;
             if ($item instanceof stdClass) {
                 $users[] = [
-                    'id' => $i,
+                    'id' => $id,
                     'gender' => $item->gender,
-                    'name' => $item->name->first . ' ' . $item->name->last,
+                    'name' => "{$item->name->first} {$item->name->last}",
                     'country' => $item->location->country,
                     'postcode' => $item->location->postcode,
                     'email' => $item->email,
-                    'birthdate' => (new DateTime('now'))->format(DateTimeInterface::RFC3339)
+                    'birthdate' => (new DateTime('now'))
+                        ->format(DateTimeInterface::RFC3339)
                 ];
             }
         }
