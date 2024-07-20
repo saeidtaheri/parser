@@ -22,7 +22,7 @@ jobs:
         with:
           path: vendor
           key: composer-${{ hashFiles('**/composer.lock') }}
-          restore-key: |
+          restore-keys: |
             composer-
 
       - name: Install PHP
